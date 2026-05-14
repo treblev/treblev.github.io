@@ -24,6 +24,27 @@ categories: groundhog
 - **`CURRENT_DATE` returned no rows** — if today's price hasn't been fetched yet, the query returns empty. Added explicit instruction to use `ORDER BY date DESC LIMIT 1` for latest price queries.
 - **DuckDB rowcount returns -1** — `result.rowcount` after a bulk INSERT returns -1 in DuckDB, not the actual inserted count. Cosmetic issue only; data was inserted correctly.
 
+## How the chat prompt works
+
+When the agent receives a question, it builds a `sql_prompt` — a list of message dicts sent to Ollama's `/api/chat` endpoint:
+
+```python
+[
+    {
+        "role": "system",   # sets the model's persona and rules
+        "content": "..."    # schema + constraints injected here
+    },
+    {
+        "role": "user",     # the actual question
+        "content": question
+    }
+]
+```
+
+The model processes them in order — system message first to establish context, then the user question. By the time it generates SQL it already knows the exact table structure, ticker names, and rules (like "use `ORDER BY date DESC LIMIT 1` instead of `CURRENT_DATE`").
+
+This is the standard chat format used by Ollama, OpenAI, Anthropic, and most LLM APIs — just a list of `{role, content}` dicts. The system role is the mechanism for injecting context without it being part of the conversation history.
+
 ## Concepts touched
 - Text-to-SQL agents
 - Schema-as-context prompt engineering
