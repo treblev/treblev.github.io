@@ -16,7 +16,14 @@ categories: groundhog
 - **yfinance** for stock data — free, no API key, good historical coverage
 - **Per-ticker period in watchlist.txt** — avoids hardcoding periods in code, easy to extend
 - **Two LLM calls in agent**: call 1 generates SQL, call 2 translates results to natural language answer
-- **Schema injected into system prompt** — model knows table/column names at query time; enriched with actual ticker values and activity types so model doesn't hallucinate them
+- **Schema injected into system prompt** — model knows table/column names at query time; enriched with actual ticker values and activity types so model doesn't hallucinate them. The schema string looks like this:
+
+  ```
+  stock_watchlist(date DATE, ticker VARCHAR, closing_price DECIMAL(10,2), ...)  -- tickers: INTC, BTC-USD
+  activities(id VARCHAR, date DATE, activity_type VARCHAR, ...)  -- activity_types: walking, running, strength
+  ```
+
+  When you ask "what is bitcoin price?", the model sees `-- tickers: INTC, BTC-USD` next to the table and maps "bitcoin" → `BTC-USD` using general knowledge, but uses the exact string from the schema. This is pulled live from the DB at startup via `SELECT DISTINCT ticker FROM stock_watchlist` — so it stays in sync automatically as you add tickers.
 - **`ORDER BY date DESC LIMIT 1` rule** — told the model to use this for "latest price" queries instead of `CURRENT_DATE`, which fails when today's data hasn't been fetched yet
 
 ## Problems faced
