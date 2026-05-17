@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Grounding the LLM in DuckDB's SQL Dialect"
+title: "Day 8 — Grounding the LLM in DuckDB's SQL Dialect"
 date: 2026-05-17
 categories: groundhog
 ---
