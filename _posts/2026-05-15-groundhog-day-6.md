@@ -52,6 +52,19 @@ Once you have enough information, stop calling tools and give your final answer.
 For simple requests like remembering a fact, call remember() once and immediately confirm to the user.
 ```
 
+**Problem: Model ignoring recalled memories**
+
+Even after recalling the correct memory, the model answered based on its own training knowledge instead. For example, storing "never refer to Bitcoin as crypto" and then asking "is Bitcoin crypto?" returned a long-winded answer explaining why Bitcoin is technically a cryptocurrency — completely ignoring the stored preference.
+
+The fix was making the system prompt more direct:
+
+```
+When recall() returns memories, answer ONLY based on those memories.
+Do not add your own knowledge, reasoning, or qualifications. State the answer directly as fact.
+```
+
+The key word is ONLY. Without it the model treats recalled memories as one input among many and still reasons from its training data. With it, the memory becomes the authoritative source.
+
 ## Concepts touched
 - Embeddings and vector similarity search
 - RAG foundations — structured SQL data + unstructured memory in the same agent
