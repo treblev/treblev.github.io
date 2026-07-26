@@ -21,6 +21,11 @@ flowchart LR
 
 Groundhog owns the facts. OpenClaw makes them convenient to use.
 
+The scheduled stock pipeline follows the same boundary: Linux `systemd` starts
+Groundhog at 5 PM Phoenix time to collect prices, calculate signals, and record
+alerts. OpenClaw does not run that collection job; it delivers the resulting
+alerts and provides the chat interface around them.
+
 ## What Groundhog does
 
 Groundhog collects stock prices, sleep data, workout plans, activity results,
