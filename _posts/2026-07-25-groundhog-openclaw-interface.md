@@ -6,15 +6,17 @@ categories: groundhog
 ---
 
 Groundhog is not an OpenClaw plugin. Groundhog is the local personal-data
-system; OpenClaw is the chat and delivery layer around it.
+system; OpenClaw is the chat and delivery layer around it. Groundhog keeps the
+database, ingestion, analytics, and AI inside the home LAN, while OpenClaw
+handles the conversational interface and delivery.
 
-```
-OpenClaw
-  chat, routing, scheduling, delivery
-        |
-        v
-Groundhog
-  DuckDB, ingestion, analytics, local AI, MCP tools
+```mermaid
+flowchart LR
+    U[Telegram / user] --> O[OpenClaw<br/>chat, routing, delivery]
+    O <-->|local MCP| G[Groundhog<br/>ingestion, analytics, agent]
+    G --> D[(DuckDB<br/>personal data)]
+    G --> Q[Ollama on the LAN<br/>Qwen 3.6 and Qwen 3-VL]
+    Q --> G
 ```
 
 Groundhog owns the facts. OpenClaw makes them convenient to use.
@@ -28,13 +30,13 @@ idempotent, so re-running an import does not duplicate data.
 It also calculates SMA 50/200 and daily/weekly Supertrend signals, then records
 deduplicated alerts. OpenClaw can decide whether and where to deliver them.
 
-All AI stays local through Ollama:
+All AI stays local through Ollama. Groundhog uses the open-source Qwen 3.6
+model for text and data questions, Qwen 3-VL for screenshot extraction, and
+`nomic-embed-text` for memory embeddings. These models run on our LAN, so
+personal health, sleep, workout, and memory data do not leave it.
 
-- `qwen3.6` for text and data questions
-- `qwen3-vl` for screenshot extraction
-- `nomic-embed-text` for memory embeddings
-
-No health, sleep, workout, or memory data is sent to OpenAI or Anthropic.
+No health, sleep, workout, or memory data is sent to OpenAI, Anthropic, or a
+hosted model API.
 
 ## Ask Groundhog
 
