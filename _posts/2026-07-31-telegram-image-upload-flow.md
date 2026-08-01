@@ -10,26 +10,27 @@ separate paths: importing the image into Groundhog and sending a message back
 to Telegram. Keeping those paths distinct is useful, but it also means their
 timing must be handled carefully.
 
-```mermaid
+<div class="mermaid">
 flowchart TD
-    U["User sends an activity screenshot\nin Telegram"] --> O["OpenClaw receives the image"]
-    O --> D["Direct upload handler\nstarts the import immediately"]
-    O --> W["One-minute media watcher\nsafety net for unseen uploads"]
+    U["User sends an activity screenshot<br/>in Telegram"] --> O["OpenClaw receives the image"]
+    O --> D["Direct upload handler<br/>starts the import immediately"]
+    O --> W["One-minute media watcher<br/>safety net for unseen uploads"]
 
-    D --> V["Groundhog vision importer\nlocal Qwen 3-VL reads this image"]
+    D --> V["Groundhog vision importer<br/>local Qwen 3-VL reads this image"]
     W --> V
     V --> A["Upsert activity into DuckDB"]
-    A --> E["Record upload_imported event\nfor audit and summaries"]
-    D --> R["Reply with metrics from\nthe image just imported"]
+    A --> E["Record upload_imported event<br/>for audit and summaries"]
+    D --> R["Reply with metrics from<br/>the image just imported"]
 
     S["Stock alert or job failure"] --> Q["Outbox"]
     Q --> B["Background delivery bridge"]
     B --> T["Telegram notification"]
+</div>
 
-    style Q fill:#3b2f4a,stroke:#b99cff,color:#fff
-    style B fill:#3b2f4a,stroke:#b99cff,color:#fff
-    style T fill:#3b2f4a,stroke:#b99cff,color:#fff
-```
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "dark" });
+</script>
 
 ## The important distinction
 
