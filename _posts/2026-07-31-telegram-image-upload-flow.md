@@ -10,27 +10,7 @@ separate paths: importing the image into Groundhog and sending a message back
 to Telegram. Keeping those paths distinct is useful, but it also means their
 timing must be handled carefully.
 
-<div class="mermaid">
-flowchart TD
-    U["User sends an activity screenshot<br/>in Telegram"] --> O["OpenClaw receives the image"]
-    O --> D["Direct upload handler<br/>starts the import immediately"]
-    O --> W["One-minute media watcher<br/>safety net for unseen uploads"]
-
-    D --> V["Groundhog vision importer<br/>local Qwen 3-VL reads this image"]
-    W --> V
-    V --> A["Upsert activity into DuckDB"]
-    A --> E["Record upload_imported event<br/>for audit and summaries"]
-    D --> R["Reply with metrics from<br/>the image just imported"]
-
-    S["Stock alert or job failure"] --> Q["Outbox"]
-    Q --> B["Background delivery bridge"]
-    B --> T["Telegram notification"]
-</div>
-
-<script type="module">
-  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({ startOnLoad: true, theme: "dark" });
-</script>
+![Flowchart showing the direct image-import path and separate background-alert path](/assets/images/telegram-image-upload-flow.svg)
 
 ## The important distinction
 
