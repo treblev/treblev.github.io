@@ -10,7 +10,33 @@ separate paths: importing the image into Groundhog and sending a message back
 to Telegram. Keeping those paths distinct is useful, but it also means their
 timing must be handled carefully.
 
-![Flowchart showing the direct image-import path and separate background-alert path](/assets/images/telegram-image-upload-flow.svg)
+## The upload path, step by step
+
+1. **You send a screenshot in Telegram.** OpenClaw receives the image file and
+   its caption, if you included one.
+
+2. **The direct upload handler starts the import.** It passes that exact image
+   to Groundhog right away. Its only job is to return the metrics from that
+   image, such as date, distance, duration, pace, and heart rate.
+
+3. **Groundhog's local vision model reads the screenshot.** The model extracts
+   only the visible workout facts. Groundhog uses the date shown in the image;
+   a caption can supply a date only when the image date is unreadable.
+
+4. **Groundhog saves the result in DuckDB.** The activity is upserted, so
+   retrying the same screenshot does not create a duplicate record. It also
+   records an `upload_imported` event as an audit trail for future summaries.
+
+5. **The direct handler replies about that same image.** This response is
+   immediate and tied to the attachment currently being processed.
+
+6. **The periodic watcher is a safety net.** Once each minute it looks for new
+   images the direct handler may have missed, imports them, and records their
+   results. It does not send a later chat reply.
+
+The outbox is intentionally separate. It is for operational notifications such
+as stock alerts and failed jobs, which can safely be delivered later because
+they are not replies to a particular Telegram image.
 
 ## The important distinction
 
