@@ -51,26 +51,21 @@ that a typical successful response was relatively quick, while its timeout
 caused much worse tail latency and reliability. Qwen was slower on the typical
 successful response but considerably more consistent across the complete test.
 
-## Three main causes of slowness
+## Two main causes of slowness
 
 Request traces showed that approximately 92–94% of total response time was
 spent in language-model inference. Database access, tool execution, and
-embedding retrieval were comparatively small parts of the total. Three factors
+embedding retrieval were comparatively small parts of the total. Two factors
 account for most of the delay:
 
-1. **Large models are running locally.** Both answer models perform their
-   inference on the local Mac. Keeping data local is intentional, but generating
-   each response with a large model is slower than calling a small classifier
-   or returning a result directly from code.
-
-2. **Each question invokes the model repeatedly.** A single evaluated request
+1. **Each question invokes the model repeatedly.** A single evaluated request
    used between four and ten sequential model calls. Those calls can include
    selecting a tool, interpreting its result, composing the answer, checking
    that the answer is grounded, checking that it does not expose internal
    details, and retrying a failed check. The delays accumulate because these
    steps happen one after another.
 
-3. **Each model pass receives more context than it needs.** Even straightforward
+2. **Each model pass receives more context than it needs.** Even straightforward
    questions enter the general agent with broad instructions, tool
    documentation, and database-schema context. Processing that repeated context
    adds latency before the model can produce the small answer the user actually
