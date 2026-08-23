@@ -5,6 +5,9 @@ date: 2026-08-22
 categories: groundhog
 ---
 
+> **Test environment:** These tests were conducted on my local Mac, where both
+> Qwen 3.6 and Gemma 4 were running locally.
+
 This end-to-end model evaluation compares two local answer models using the
 same set of 15 questions. The database, tools, prompts, and embedding-based
 retriever were held constant so that only the answer model changed.
