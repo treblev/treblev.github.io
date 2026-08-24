@@ -12,10 +12,7 @@ This end-to-end model evaluation compares two local answer models using the
 same set of 15 questions. The database, tools, prompts, and embedding-based
 retriever were held constant so that only the answer model changed.
 
-The questions exercised a mixture of structured lookups, empty-result handling,
-filtered listings, and semantic retrieval. This post intentionally reports only
-aggregate results; it does not include the questions, responses, or underlying
-personal records.
+Questions are related to personal data so we ommited for this post.
 
 > **Baseline status:** The latency is higher than desired. This post will be
 > edited after latency improvements are implemented and the same evaluation is
@@ -23,33 +20,22 @@ personal records.
 
 ## Accuracy and successful-response latency
 
-The latency statistics in this first table include successful responses only.
-Standard deviation is the population standard deviation across the completed
-responses in this run.
+The latency statistics in this first table include successful responses only. SD applies for completed questions only.
 
 | Model | Factual passes | Responses returned | Timeouts | Pass rate | Average | Median | Standard deviation | Minimum | Maximum |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Qwen 3.6 | 15/15 | 15/15 | 0 | 100.00% | 48.35s | 44.42s | 14.72s | 30.86s | 79.29s |
 | Gemma 4 | 14/15 | 14/15 | 1 | 93.33% | 41.27s | 34.09s | 18.84s | 22.78s | 90.19s |
 
-Qwen completed every question correctly. Gemma returned correct answers for all
-14 questions it completed, but one request did not return an answer and was
-terminated after more than 686.94 seconds.
-
-Gemma was faster on the median successful request, but successful-response
-statistics alone hide the operational cost of that timeout. Treating the last
-measured timeout duration as a lower bound produces the following attempt-level
-view:
+Qwen completed every question correctly but slower than Gemma.
+Gemma was faster on the median successful request, but also had one failed answer:
 
 | Model | Average | Median | Standard deviation | Minimum | Maximum |
 |---|---:|---:|---:|---:|---:|
 | Qwen 3.6 | 48.35s | 44.42s | 14.72s | 30.86s | 79.29s |
 | Gemma 4 | at least 84.32s | 35.40s | at least 162.08s | 22.78s | more than 686.94s |
 
-The distinction between median and average matters here. Gemma's median shows
-that a typical successful response was relatively quick, while its timeout
-caused much worse tail latency and reliability. Qwen was slower on the typical
-successful response but considerably more consistent across the complete test.
+Overall Gemma 4 seems an improvement over Qwen but this is not the 3.8 version. So it will be interesting to see how the results look for that comparison.
 
 ## Two main causes of slowness
 
@@ -58,28 +44,13 @@ spent in language-model inference. Database access, tool execution, and
 embedding retrieval were comparatively small parts of the total. Two factors
 account for most of the delay:
 
-1. **Each question invokes the model repeatedly.** A single evaluated request
-   used between four and ten sequential model calls. Those calls can include
-   selecting a tool, interpreting its result, composing the answer, checking
-   that the answer is grounded, checking that it does not expose internal
-   details, and retrying a failed check. The delays accumulate because these
-   steps happen one after another.
+1. **Each question invokes the model repeatedly.** The requests are treated very non-deterministically and so the LLM is checking the entire DB tables list one by one before deciding on its action. 
 
 2. **Each model pass receives more context than it needs.** Even straightforward
-   questions enter the general agent with broad instructions, tool
-   documentation, and database-schema context. Processing that repeated context
-   adds latency before the model can produce the small answer the user actually
-   needs.
+   questions have very broad instructions about every data type we have started to collect over the iterations. BLOAT! 
+   Improvement here would be to make the action be more deterministic by reconfiguring the way we treat the requests. Codex indicates a routing schema is best. 
 
 ## Latency is now the main problem
 
-Accuracy was strong enough to move the focus to responsiveness. Waiting roughly
-half a minute to more than a minute for an ordinary answer is not the experience
-Groundhog should provide, and an unbounded request lasting many minutes is not
-acceptable.
+Accuracy is not the problem now. Responsiveness is. Waiting 40 seconds for each query is problematic. 
 
-The next work will reduce unnecessary model inference, add faster paths for
-structured questions, and enforce a practical timeout. After those improvements
-are in place, the same 15-question evaluation will be run again. This post will
-then be edited with the new latency statistics so the improvement can be
-measured against this baseline rather than judged informally.
