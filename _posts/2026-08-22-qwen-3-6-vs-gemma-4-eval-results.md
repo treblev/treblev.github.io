@@ -59,5 +59,5 @@ The routed path cut response time sharply while preserving accuracy:
 
 | Model | Legacy average | Routed average | Improvement |
 |---|---:|---:|---:|
-| Qwen 3.6 | 45.79s | 9.42s | 79.4% faster |
+| Qwen 3.6 | 48.35s | 9.42s | 80.5% faster |
 | Gemma 4 | 41.27s | 6.38s | 84.5% faster |
