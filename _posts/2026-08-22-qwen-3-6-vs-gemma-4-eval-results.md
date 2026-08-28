@@ -55,9 +55,13 @@ things caused most of the drag:
 
 ## Post-change results
 
-The routed path cut response time sharply while preserving accuracy:
+The routed path cut successful-response latency and eliminated Gemma's timeout:
 
-| Model | Legacy average | Routed average | Improvement |
-|---|---:|---:|---:|
-| Qwen 3.6 | 48.35s | 9.42s | 80.5% faster |
-| Gemma 4 | 41.27s | 6.38s | 84.5% faster |
+| Model | Legacy factual | Legacy timeouts | Legacy average | Routed factual | Routed timeouts | Routed average | Improvement |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Qwen 3.6 | 15/15 | 0 | 48.35s | 15/15 | 0 | 9.42s | 80.5% faster |
+| Gemma 4 | 14/15 | 1 | 41.27s* | 15/15 | 0 | 6.38s | 84.5% faster |
+
+\* Gemma's legacy average covers successful responses only. Its timed-out request
+ran for more than 686.94 seconds; including that lower bound raises the attempt
+average to at least 84.32 seconds.
