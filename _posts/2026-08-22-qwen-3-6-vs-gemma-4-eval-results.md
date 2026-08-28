@@ -14,9 +14,8 @@ retriever were held constant so that only the answer model changed.
 
 Questions are related to personal data so we ommited for this post.
 
-> **Baseline status:** The latency is higher than desired. This post will be
-> edited after latency improvements are implemented and the same evaluation is
-> rerun.
+> **Baseline status:** The baseline was too slow. The same evaluation was rerun
+> after two targeted latency changes.
 
 ## Accuracy and successful-response latency
 
@@ -39,18 +38,26 @@ Overall Gemma 4 seems an improvement over Qwen but this is not the 3.8 version. 
 
 ## Two main causes of slowness
 
-Request traces showed that approximately 92–94% of total response time was
-spent in language-model inference. Database access, tool execution, and
-embedding retrieval were comparatively small parts of the total. Two factors
-account for most of the delay:
+Request traces showed that 92–94% of response time was model inference. Two
+things caused most of the drag:
 
-1. **Each question invokes the model repeatedly.** The requests are treated very non-deterministically and so the LLM is checking the entire DB tables list one by one before deciding on its action. 
+1. **Repeated model passes:** The agent repeatedly inspected tools and schema
+   before answering.
+2. **Bloated context:** Every pass carried instructions and data definitions
+   unrelated to the question.
 
-2. **Each model pass receives more context than it needs.** Even straightforward
-   questions have very broad instructions about every data type we have started to collect over the iterations. BLOAT! 
-   Improvement here would be to make the action be more deterministic by reconfiguring the way we treat the requests. Codex indicates a routing schema is best. 
+## Improvements made for latency improvement
 
-## Latency is now the main problem
+1. **Deterministic routing:** Parse each request, call only the relevant tool,
+   and keep broad schema/tool context out of confident routes.
+2. **One verifier:** Combine grounding and internal-detail checks into one review
+   call instead of two sequential calls.
 
-Accuracy is not the problem now. Responsiveness is. Waiting 40 seconds for each query is problematic. 
+## Post-change results
 
+The routed path cut response time sharply while preserving accuracy:
+
+| Model | Legacy average | Routed average | Improvement |
+|---|---:|---:|---:|
+| Qwen 3.6 | 45.79s | 9.42s | 79.4% faster |
+| Gemma 4 | 41.27s | 6.38s | 84.5% faster |
